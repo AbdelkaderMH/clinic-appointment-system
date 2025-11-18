@@ -1,0 +1,7 @@
+* text=auto
+
+# Treat all java files as UTF‑8
+*.java text eol=lf
+
+# Ensure shell scripts use LF line endings
+*.sh text eol=lf

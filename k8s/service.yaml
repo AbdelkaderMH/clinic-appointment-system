@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: clinic-appointment-system
+  namespace: clinic
+  labels:
+    app: clinic-appointment-system
+    version: v1
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "8090"
+spec:
+  selector:
+    app: clinic-appointment-system
+  type: NodePort
+  ports:
+    - name: http
+      port: 8090        # Service port inside the cluster
+      targetPort: 8090  # Container port (matches containerPort in deployment)
+      nodePort: 30090   # External NodePort on the Minikube node
+      protocol: TCP
+  sessionAffinity: None

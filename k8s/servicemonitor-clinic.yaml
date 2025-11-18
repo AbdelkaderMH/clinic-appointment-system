@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: clinic-servicemonitor
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: clinic-appointment-system
+  namespaceSelector:
+    matchNames:
+      - clinic
+  endpoints:
+    - port: http
+      interval: 15s
+      path: "/actuator/prometheus"
