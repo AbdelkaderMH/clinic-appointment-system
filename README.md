@@ -92,17 +92,7 @@ This application follows a typical layered architecture with MySQL as the persis
 
 ## 🚀 Quick Start
 
-### Option 1: Docker (Recommended)
-
-```bash
-cd clinic-appointment-system/docker
-docker-compose up --build
-```
-
-The service will start on `http://localhost:8090`. Swagger UI is available at
-`http://localhost:8090/swagger-ui.html`. MySQL runs in a separate container with persistent storage.
-
-### Option 2: Local Development
+### Option 1: Local Deployment
 
 Clone the repository and build the project:
 
@@ -118,6 +108,16 @@ Ensure MySQL 8.0 is running locally on port 3306 with the default credentials co
 The service will start on `http://localhost:8090`. Swagger UI is available at
 `http://localhost:8090/swagger-ui.html`. Use the API endpoints to manage
 patients, doctors and appointments.
+
+### Option 2: Docker
+
+```bash
+cd clinic-appointment-system/docker
+docker-compose up --build
+```
+
+The service will start on `http://localhost:8090`. Swagger UI is available at
+`http://localhost:8090/swagger-ui.html`. MySQL runs in a separate container with persistent storage.
 
 ### Option 3: Full CI/CD Pipeline with Monitoring
 
