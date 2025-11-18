@@ -121,7 +121,16 @@ patients, doctors and appointments.
 
 ### Option 3: Full CI/CD Pipeline with Monitoring
 
-Run the complete Jenkins CI/CD pipeline that includes automated deployment and monitoring:
+Run the complete Jenkins CI/CD pipeline that includes automated deployment and monitoring using **Minikube** as the Kubernetes cluster manager:
+
+#### Minikube Cluster Management:
+```bash
+# Start Minikube cluster
+minikube start
+
+# Check cluster status
+minikube status
+```
 
 #### Jenkins Pipeline Steps:
 1. **Environment Validation** - Validates required environment variables
