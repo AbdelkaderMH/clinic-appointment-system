@@ -1,11 +1,45 @@
-# Deployment Guide
+# Deployment Guide 🚀
 
-This application can be deployed either directly on a JVM or within a
-Docker container.
+Comprehensive deployment guide for the Clinic Appointment System with multiple deployment options.
 
-## Local Deployment
+## Deployment Options
 
-1. Install Java 17 and Maven.
+The application supports three deployment strategies:
+
+1. **Local Deployment** - Direct JVM execution for development
+2. **Docker Deployment** - Containerized deployment (recommended)
+3. **Kubernetes Deployment** - Production-ready orchestration with monitoring
+
+## Option 1: Local Deployment
+
+### Prerequisites
+- **Java 21+**
+- **Maven 3.6+** 
+- **MySQL 8.0** running on localhost:3306
+
+### Quick Start
+
+```bash
+# Clone and build
+git clone https://github.com/AbdelkaderMH/clinic-appointment-system.git
+cd clinic-appointment-system
+mvn clean install
+mvn spring-boot:run
+```
+
+### Using Build Scripts
+
+```bash
+# Build the application
+./scripts/build.sh
+
+# Start the application
+./scripts/run.sh
+```
+
+### Manual Build (Alternative)
+
+1. Install Java 21+ and Maven 3.6+
 2. Build the project:
 
    ```bash
@@ -15,12 +49,14 @@ Docker container.
 3. Run the JAR file:
 
    ```bash
-   java -jar target/clinic-appointment-system-1.0.0.jar
+   java -jar target/clinic-appointment-system-*.jar
    ```
 
-## Docker Deployment
+**Application URL**: `http://localhost:8090`
 
-### Recommended: Docker Compose (Includes MySQL)
+## Option 2: Docker Deployment
+
+### Docker Compose Setup (Recommended)
 
 Use the provided `docker-compose.yml` to bring up the complete stack with
 MySQL database, application, and reverse proxy:
@@ -32,7 +68,7 @@ docker-compose up --build
 
 This starts:
 - **MySQL 8.0** on port 3306 (internal networking only)
-- **Application** on port 8080
+- **Application** on port 8090
 - **Nginx** reverse proxy on port 80
 - **Persistent volume** for MySQL data
 
@@ -56,7 +92,7 @@ Build from docker folder:
 ```bash
 cd docker
 docker build -t clinic-appointment-system:latest -f Dockerfile ..
-docker run -p 8080:8080 \
+docker run -p 8090:8090 \
   -e SPRING_PROFILES_ACTIVE=docker \
   -e SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/clinic_db \
   clinic-appointment-system:latest
@@ -65,7 +101,7 @@ docker run -p 8080:8080 \
 Or build from root directory:
 ```bash
 docker build -t clinic-appointment-system:latest -f docker/Dockerfile .
-docker run -p 8080:8080 \
+docker run -p 8090:8090 \
   -e SPRING_PROFILES_ACTIVE=docker \
   -e SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/clinic_db \
   clinic-appointment-system:latest
@@ -87,43 +123,6 @@ docker run -p 8080:8080 \
 - Persists data with volumes
 
 This is the simplest and most reliable approach for local development and testing.
-
-## Docker Folder Structure
-
-The `docker/` folder contains all Docker-related files:
-
-```
-docker/
-├── Dockerfile              # Application container image
-├── docker-compose.yml      # Multi-service orchestration (MySQL + App + Nginx)
-├── nginx.conf              # Nginx reverse proxy configuration
-└── mysql-data/             # MySQL data volume (created at runtime)
-```
-
-### Key Files
-
-- **Dockerfile** - Builds the Spring Boot application image (multi-stage build)
-- **docker-compose.yml** - Orchestrates MySQL, Application, and Nginx services
-- **nginx.conf** - Reverse proxy configuration (routes traffic to app)
-
-### Running from docker/ folder
-
-```bash
-cd docker
-docker-compose up --build        # Start all services
-docker-compose down              # Stop all services
-docker-compose ps                # Show running services
-docker-compose logs -f           # Stream all logs
-docker-compose logs -f mysql     # Stream MySQL logs only
-docker-compose logs -f clinic-app # Stream app logs only
-```
-
-### Running from root folder
-
-```bash
-docker-compose -f docker/docker-compose.yml up --build
-docker-compose -f docker/docker-compose.yml down
-```
 
 ## Configuration
 
@@ -168,278 +167,61 @@ Set environment variables: `DB_USER` and `DB_PASSWORD`.
 
 ## Accessing the Application
 
-- **API Endpoint**: `http://localhost:8080/api/`
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **Health Check**: `http://localhost:8080/actuator/health`
+- **API Endpoint**: `http://localhost:8090/api/`
+- **Swagger UI**: `http://localhost:8090/swagger-ui/index.html`
+- **Health Check**: `http://localhost:8090/actuator/health`
 
-## MySQL Management
+## Option 3: Kubernetes Deployment with Monitoring
 
-### Connect to MySQL Container
+### Minikube Cluster Management
 
 ```bash
-docker exec -it clinic-mysql mysql -u clinic_user -p clinic_db
+# Start Minikube cluster
+minikube start
+
+# Check cluster status
+minikube status
+
+# Delete cluster
+minikube delete
 ```
 
-Password: `clinic_password`
+### Jenkins CI/CD Pipeline
 
-### View MySQL Logs
+Run the complete Jenkins pipeline that includes:
+1. **Environment Validation** - Validates required environment variables
+2. **Build & Unit Tests** - Maven build with JUnit tests and JaCoCo coverage
+3. **SonarQube Analysis** - Code quality analysis
+4. **Docker Image Build** - Creates containerized application
+5. **Kubernetes Deployment** - Deploys to Minikube cluster
+6. **Monitoring Setup** - Prometheus and Grafana stack
 
 ```bash
-docker-compose logs -f mysql
+# Run monitoring script
+powershell .\minikubemonitoring.ps1
 ```
 
-### Backup MySQL Data
+### Access Points
+
+- **Application**: `http://localhost:8090`
+- **Swagger UI**: `http://localhost:8090/swagger-ui/index.html`
+- **Prometheus**: `http://localhost:9090`
+- **Grafana**: `http://localhost:3000` (admin/admin)
+- **SonarQube**: `http://localhost:9000`
+
+### Scaling
 
 ```bash
-docker exec clinic-mysql mysqldump -u clinic_user -p clinic_db > backup.sql
-```
+# Scale to 3 replicas
+kubectl scale deployment clinic-appointment-system --replicas=3 -n clinic
 
-## Troubleshooting
-
-### Application fails to start
-
-1. Check MySQL is healthy:
-   ```bash
-   docker-compose logs mysql
-   ```
-
-2. Verify connection string in `application-docker.properties`
-
-3. Ensure MySQL container has startup delay (health checks configured)
-
-### MySQL connection refused
-
-1. Verify MySQL service is running:
-   ```bash
-   docker-compose ps
-   ```
-
-2. Check MySQL logs:
-   ```bash
-   docker-compose logs mysql
-   ```
-
-3. Verify network connectivity:
-   ```bash
-   docker network ls
-   ```
-
-### Data not persisting
-
-1. Check mysql-data volume exists:
-   ```bash
-   docker volume ls | grep mysql-data
-   ```
-
-2. Verify volume mapping in docker-compose.yml
-
-3. Ensure volume has write permissions
-
-### Performance issues
-
-1. Monitor container resources:
-   ```bash
-   docker stats
-   ```
-
-2. Check application logs:
-   ```bash
-   docker-compose logs -f clinic-app
-   ```
-
-3. Review MySQL slow query logs
-
-## Docker Compose Commands
-
-### Quick Start (Recommended)
-
-**Start all services with one command:**
-```bash
-cd docker
-docker-compose up --build
-```
-
-This will:
-1. Build the Docker image
-2. Create the Docker network and volume
-3. Start MySQL 8.0 container
-4. Wait for MySQL to be healthy
-5. Start the application container
-6. Start Nginx reverse proxy
-
-**Stop all services:**
-```bash
-docker-compose down
-```
-
-**Stop and remove all data (clean slate):**
-```bash
-docker-compose down -v
-```
-
-### Service Management
-
-**Start services in background (detached mode):**
-```bash
-docker-compose up --build -d
-```
-
-**Start services without rebuilding:**
-```bash
-docker-compose up
-```
-
-**Stop all services (keep data):**
-```bash
-docker-compose stop
-```
-
-**Start already-stopped services:**
-```bash
-docker-compose start
-```
-
-**Restart all services:**
-```bash
-docker-compose restart
-```
-
-### Monitoring & Logs
-
-**View status of all containers:**
-```bash
-docker-compose ps
-```
-
-**Stream logs from all services:**
-```bash
-docker-compose logs -f
-```
-
-**Stream logs from specific service:**
-```bash
-# Application logs
-docker-compose logs -f clinic-app
-
-# MySQL logs
-docker-compose logs -f mysql
-
-# Nginx logs
-docker-compose logs -f nginx
-```
-
-**View last 200 lines of logs:**
-```bash
-docker-compose logs --tail 200
-```
-
-**Monitor container resource usage:**
-```bash
-docker stats
-```
-
-### Building
-
-**Rebuild application image:**
-```bash
-docker-compose build --no-cache
-```
-
-**Rebuild specific service:**
-```bash
-docker-compose build --no-cache clinic-app
-```
-
-### Database Operations
-
-**Connect to MySQL container:**
-```bash
-docker exec -it clinic-mysql mysql -u clinic_user -p clinic_db
-```
-Password: `clinic_password`
-
-**Execute SQL query directly:**
-```bash
-docker exec clinic-mysql mysql -u clinic_user -pclinic_password clinic_db -e "SELECT * FROM patients;"
-```
-
-**Backup MySQL database:**
-```bash
-docker exec clinic-mysql mysqldump -u clinic_user -pclinic_password clinic_db > backup.sql
-```
-
-**Restore MySQL database:**
-```bash
-docker exec -i clinic-mysql mysql -u clinic_user -pclinic_password clinic_db < backup.sql
-```
-
-### Debugging
-
-**View container logs with timestamps:**
-```bash
-docker-compose logs --timestamps
-```
-
-**Execute command in running container:**
-```bash
-docker exec -it clinic-appointment-system /bin/sh
-```
-
-**Check network connectivity:**
-```bash
-docker exec clinic-appointment-system ping clinic-mysql
-```
-
-**Inspect Docker network:**
-```bash
-docker network inspect docker_clinic-network
-```
-
-**List Docker volumes:**
-```bash
-docker volume ls
-```
-
-### Complete Workflow
-
-**Development workflow:**
-```bash
-# Navigate to docker folder
-cd docker
-
-# Start fresh
-docker-compose down -v
-docker-compose up --build
-
-# In another terminal, watch logs
-docker-compose logs -f clinic-app
-
-# When done, stop services
-docker-compose down
-```
-
-**Production-like workflow:**
-```bash
-# Start in detached mode
-cd docker
-docker-compose up --build -d
-
-# Verify services are healthy
-docker-compose ps
-
-# Check application is responding
-curl http://localhost:8080/actuator/health
-
-# View logs if needed
-docker-compose logs clinic-app
-
-# Stop services
-docker-compose down
+# Verify scaling
+kubectl get pods -n clinic
 ```
 
 ## Deployment Checklist
 
-- [ ] Java 17+ installed (for local deployment)
+- [ ] Java 21+ installed (for local deployment)
 - [ ] Docker and Docker Compose installed
 - [ ] MySQL 8.0 configured (or use docker-compose)
 - [ ] Application built successfully
