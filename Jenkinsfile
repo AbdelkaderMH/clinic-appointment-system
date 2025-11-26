@@ -167,7 +167,7 @@ kubectl apply -n %K8S_NAMESPACE% -f k8s/secret.yaml || exit /b 1
 kubectl apply -n %K8S_NAMESPACE% -f k8s/mysql.yaml || exit /b 1
 
 echo === Wait for MySQL rollout ===
-kubectl rollout status deployment/mysql -n %K8S_NAMESPACE% --timeout=180s || exit /b 1
+kubectl rollout status deployment/mysql -n %K8S_NAMESPACE% --timeout=240 || exit /b 1
 
 echo === Apply application manifests ===
 kubectl apply -n %K8S_NAMESPACE% -f k8s/deployment.yaml || exit /b 1
