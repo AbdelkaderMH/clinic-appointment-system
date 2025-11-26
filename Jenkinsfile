@@ -147,59 +147,48 @@ pipeline {
       }
     }
 
-    stage('Deploy to Kubernetes') {
-      when {
-        expression { !env.BRANCH_NAME || env.BRANCH_NAME == 'main' }
-      }
-      steps {
-        script {
-          bat """
+stage('Deploy to Kubernetes') {
+  when {
+    expression { !env.BRANCH_NAME || env.BRANCH_NAME == 'main' }
+  }
+  steps {
+    script {
+      bat """
 set KUBECONFIG=C:\\Users\\Abdelkader\\.kube\\config
 
-echo === Checking Kubernetes cluster reachability ===
-kubectl cluster-info || (echo Kubernetes API unreachable! && exit /b 1)
+echo === Checking Kubernetes cluster ===
+kubectl cluster-info || (echo Cluster unreachable! && exit /b 1)
 
-echo === Cleaning up old clinic app deployment ===
-kubectl delete deployment clinic-appointment-system -n %K8S_NAMESPACE% --ignore-not-found=true
-kubectl delete service clinic-appointment-system -n %K8S_NAMESPACE% --ignore-not-found=true
-echo Old deployment cleaned up
-
-echo === Applying namespace ===
+echo === Apply namespace ===
 kubectl apply -f k8s/namespace.yaml || exit /b 1
 
-echo === Applying secrets and MySQL ===
+echo === Apply secrets and MySQL resources ===
 kubectl apply -n %K8S_NAMESPACE% -f k8s/secret.yaml || exit /b 1
 kubectl apply -n %K8S_NAMESPACE% -f k8s/mysql.yaml || exit /b 1
 
-echo === Waiting for MySQL rollout ===
-kubectl rollout status deployment/mysql -n %K8S_NAMESPACE% --timeout=180s >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-  echo MySQL rollout failed - checking status
-  kubectl get pods -l app=mysql -n %K8S_NAMESPACE% -o wide
-  exit /b 1
-)
-echo === MySQL pods ready ===
-kubectl get pods -l app=mysql -n %K8S_NAMESPACE% -o wide
+echo === Wait for MySQL rollout ===
+kubectl rollout status deployment/mysql -n %K8S_NAMESPACE% --timeout=180s || exit /b 1
 
-echo === Applying application deployment and service ===
+echo === Apply application manifests ===
 kubectl apply -n %K8S_NAMESPACE% -f k8s/deployment.yaml || exit /b 1
 kubectl apply -n %K8S_NAMESPACE% -f k8s/service.yaml || exit /b 1
 kubectl apply -n %K8S_NAMESPACE% -f k8s/ingress.yaml || exit /b 1
 
-echo === Updating deployment image to build %BUILD_NUMBER% ===
+echo === Update application image ===
 kubectl set image deployment/clinic-appointment-system clinic-appointment-system=%DOCKER_REPOSITORY%/%DOCKER_IMAGE_NAME%:%BUILD_NUMBER% -n %K8S_NAMESPACE% || exit /b 1
 
-echo === Waiting for rollout ===
+echo === Wait for rollout ===
 kubectl rollout status deployment/clinic-appointment-system -n %K8S_NAMESPACE% --timeout=180s || exit /b 1
 
-echo === Current service and pods ===
+echo === Show current state ===
 kubectl get svc clinic-appointment-system -n %K8S_NAMESPACE% -o wide
 kubectl get pods -n %K8S_NAMESPACE%
 kubectl get nodes -o wide
 """
-        }
-      }
     }
+  }
+}
+
 
 
     stage('Summary') {
