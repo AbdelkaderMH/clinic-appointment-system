@@ -185,8 +185,8 @@ kubectl get svc clinic-appointment-system -n %K8S_NAMESPACE% -o wide
 kubectl get pods -n %K8S_NAMESPACE%
 kubectl get nodes -o wide
 
-echo === Port forward clinic app ===
-kubectl port-forward -n %K8S_NAMESPACE% svc/clinic-appointment-system 8090:8090
+echo === Deployment successful ===
+echo Access application at: http://localhost:8090
 """
     }
   }
