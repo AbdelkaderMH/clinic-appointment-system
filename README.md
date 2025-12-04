@@ -150,8 +150,8 @@ The pipeline concludes with the monitoring script that:
 - Verifies application deployment success
 
 ```bash
-# Trigger Jenkins pipeline or run monitoring script directly
-powershell .\minikubemonitoring.ps1
+# Trigger Jenkins pipeline and run monitoring script directly
+.\minikubemonitoring.ps1
 ```
 
 #### Access Points After Pipeline:

@@ -132,19 +132,16 @@ try {
     Write-Warning "ServiceMonitor apply failed: $($_.Exception.Message)"
 }
 
-# Step 7: Setup port-forwards
+# Step 7: Setup port-forwards for monitoring stack
 if (-not $NoPortForward) {
-    Write-Output "Setting up port-forwards..."
+    Write-Output "Setting up port-forwards for monitoring stack..."
     $grafanaJob = Start-Job -ScriptBlock { param($ns); kubectl port-forward -n $ns svc/prometheus-stack-grafana 3000:80 } -ArgumentList "monitoring"
     $promJob = Start-Job -ScriptBlock { param($ns); kubectl port-forward -n $ns svc/prometheus-stack-kube-prom-prometheus 9090:9090 } -ArgumentList "monitoring"
-    $clinicJob = Start-Job -ScriptBlock { param($ns); kubectl port-forward -n $ns svc/clinic-appointment-system 8090:8090 } -ArgumentList "clinic"
-    Write-Output "Port-forwards started (jobs: $($grafanaJob.Id), $($promJob.Id), $($clinicJob.Id))"
+    Write-Output "Port-forwards started (jobs: $($grafanaJob.Id), $($promJob.Id))"
     Write-Output ""
     Write-Output "Access URLs:"
     Write-Output "  Prometheus: http://localhost:9090"
     Write-Output "  Grafana: http://localhost:3000 (admin/admin)"
-    Write-Output "  Clinic API: http://localhost:8090"
-    Write-Output "  Clinic Swagger: http://localhost:8090/swagger-ui/index.html"
 } else {
     Write-Output "Skipping port-forwards (CI mode)"
 }
